@@ -37,6 +37,10 @@ build/sign/deploy не се записва като публикувана ве�
 
 ## Еднократно активиране от собственика
 
+За `rosenk/claude-desktop-flatpack` Pages и signing настройките вече са
+конфигурирани. Следващите стъпки са за ново хранилище или fork; **не сменяй
+съществуващия signing ключ**, ако клиенти вече използват repo-то.
+
 Кодът сам по себе си не активира Pages и не създава signing secret.
 Преди първия deployment:
 
@@ -81,7 +85,7 @@ repo. Следи failed run известията и при нужда актив
 
 ## Инсталиране след първото успешно публикуване
 
-Следният URL **няма да работи преди активиране и успешен deployment**:
+Инсталиране от подписаното GitHub Pages repo:
 
 ```bash
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
@@ -100,6 +104,13 @@ flatpak update --user io.github.rosenk.ClaudeDesktop
 Не се използва `--no-gpg-verify`: `.flatpakrepo` съдържа публичния signing key.
 Първоначалното доверие идва от HTTPS Pages URL; можеш отделно да провериш
 fingerprint-а на публикувания `repo-key.gpg` с `gpg --show-keys`.
+
+Публичният ключ е включен и в [repo-key.asc](repo-key.asc). Очакваният
+fingerprint за това хранилище е:
+
+```text
+21D8 B076 4577 002B 3261 EC2F B994 3E60 D1B0 0062
+```
 
 ## Sandbox и ограничения
 
