@@ -1,0 +1,153 @@
+name: Monitor, build and publish Flatpak
+
+on:
+  schedule:
+    - cron: '23 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Rebuild even if the upstream versions are unchanged
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+    paths:
+      - 'packaging/**'
+      - 'scripts/**'
+      - '.github/workflows/flatpak.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flatpak-publish
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      changed: ${{ steps.upstream.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check signed upstream metadata
+        id: upstream
+        env:
+          FORCE: ${{ github.event_name == 'push' || inputs.force == true }}
+          PAGES_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+        run: |
+          args=()
+          if [[ "$FORCE" == true ]]; then args+=(--force); fi
+          python3 scripts/upstream.py --published-url "$PAGES_URL/versions.json" "${args[@]}"
+      - uses: actions/upload-artifact@v4
+        if: steps.upstream.outputs.changed == 'true'
+        with:
+          name: upstream
+          path: generated/
+          retention-days: 2
+
+  build:
+    needs: check
+    if: needs.check.outputs.changed == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-24.04
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: upstream
+          path: generated/
+      - name: Install Flatpak tools and runtimes
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+          # Ubuntu 24.04 restricts unprivileged user namespaces by default.
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user -y --noninteractive flathub org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08
+      - name: Build pinned official package
+        run: |
+          flatpak-builder --user --force-clean --disable-rofiles-fuse --repo=repo \
+            --default-branch=stable build generated/${{ matrix.arch }}.json
+          flatpak build --runtime build sh -ec '
+            libraries=$(ldd /app/lib/claude-desktop/claude-desktop)
+            printf "%s\n" "$libraries"
+            ! printf "%s\n" "$libraries" | grep "not found"
+          '
+          flatpak build --runtime build /app/bin/claude-desktop --version
+          ostree --repo=repo fsck
+      - name: Archive repository (preserves file permissions)
+        run: tar -cf repo-${{ matrix.arch }}.tar -C repo .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: repo-${{ matrix.arch }}
+          path: repo-${{ matrix.arch }}.tar
+          compression-level: 0
+          retention-days: 2
+
+  publish:
+    needs: [check, build]
+    if: needs.check.outputs.changed == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: repo-*
+          path: downloads/
+          merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: upstream
+          path: generated/
+      - name: Merge and sign repository
+        env:
+          SIGNING_KEY: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
+          FLATPAK_GPG_KEY_ID: ${{ vars.FLATPAK_GPG_KEY_ID }}
+          GNUPGHOME: ${{ runner.temp }}/flatpak-gnupg
+          REPO_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/repo
+        run: |
+          test -n "$SIGNING_KEY" && test -n "$FLATPAK_GPG_KEY_ID" || {
+            echo 'Configure FLATPAK_GPG_PRIVATE_KEY secret and FLATPAK_GPG_KEY_ID variable first.' >&2
+            exit 1
+          }
+          sudo apt-get update
+          sudo apt-get install -y flatpak ostree
+          mkdir -m700 "$GNUPGHOME"
+          trap 'gpgconf --kill all; rm -rf "$GNUPGHOME"' EXIT
+          printf '%s' "$SIGNING_KEY" | gpg --batch --import
+          unset SIGNING_KEY
+          for arch in x86_64 aarch64; do
+            mkdir -p "repos/$arch"
+            tar -xf "downloads/repo-$arch.tar" -C "repos/$arch"
+          done
+          bash scripts/publish.sh
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/
+      - uses: actions/deploy-pages@v4
+        id: deploy

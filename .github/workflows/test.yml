@@ -1,0 +1,20 @@
+name: Test packaging automation
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: python3 -m unittest discover -s tests -v
+      - run: bash -n scripts/publish.sh && sh -n packaging/claude-desktop
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y desktop-file-utils flatpak ostree
+          desktop-file-validate packaging/*.desktop
+      - run: bash tests/test_publish.sh

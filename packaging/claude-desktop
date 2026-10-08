@@ -1,0 +1,4 @@
+#!/bin/sh
+# Chromium's nested sandbox cannot use its setuid helper inside Flatpak.
+# The application remains contained by Flatpak's outer sandbox.
+exec /app/lib/claude-desktop/claude-desktop --no-sandbox "$@"

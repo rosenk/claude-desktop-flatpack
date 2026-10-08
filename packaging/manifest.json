@@ -1,0 +1,35 @@
+{
+  "app-id": "io.github.rosenk.ClaudeDesktop",
+  "runtime": "org.freedesktop.Platform",
+  "runtime-version": "25.08",
+  "sdk": "org.freedesktop.Sdk",
+  "command": "claude-desktop",
+  "separate-locales": false,
+  "finish-args": [
+    "--share=ipc",
+    "--share=network",
+    "--socket=x11",
+    "--socket=pulseaudio",
+    "--device=dri",
+    "--talk-name=org.freedesktop.secrets",
+    "--talk-name=org.kde.StatusNotifierWatcher"
+  ],
+  "modules": [
+    {
+      "name": "claude-desktop",
+      "buildsystem": "simple",
+      "build-commands": [
+        "ar x claude.deb",
+        "mkdir extracted && tar -xf data.tar.* -C extracted",
+        "mkdir -p /app/lib /app/bin /app/share/applications /app/share/metainfo",
+        "cp -a extracted/usr/lib/claude-desktop /app/lib/",
+        "rm /app/lib/claude-desktop/chrome-sandbox",
+        "install -m755 claude-desktop /app/bin/claude-desktop",
+        "install -m644 io.github.rosenk.ClaudeDesktop.desktop /app/share/applications/",
+        "install -m644 io.github.rosenk.ClaudeDesktop.metainfo.xml /app/share/metainfo/",
+        "for size in 16 32 48 128 256; do install -Dm644 extracted/usr/share/icons/hicolor/${size}x${size}/apps/claude-desktop.png /app/share/icons/hicolor/${size}x${size}/apps/io.github.rosenk.ClaudeDesktop.png; done"
+      ],
+      "sources": []
+    }
+  ]
+}

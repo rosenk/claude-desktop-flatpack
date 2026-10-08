@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Claude
+Comment=Unofficial Flatpak of Claude Desktop
+Exec=claude-desktop %U
+Icon=io.github.rosenk.ClaudeDesktop
+Type=Application
+StartupNotify=true
+StartupWMClass=com.anthropic.Claude
+Categories=Utility;Development;
+MimeType=x-scheme-handler/claude;application/vnd.anthropic.mcpb;application/vnd.anthropic.skill;

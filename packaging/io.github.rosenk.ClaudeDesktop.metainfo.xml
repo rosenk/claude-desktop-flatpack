@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.rosenk.ClaudeDesktop</id>
+  <name>Claude Desktop (unofficial Flatpak)</name>
+  <summary>Chat with Claude in the official Linux desktop app</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LicenseRef-proprietary</project_license>
+  <description>
+    <p>Anthropic's official Claude Desktop Linux binary, repackaged as an unofficial Flatpak. An Anthropic account is required. Sandbox limitations apply to Code, MCP and Cowork.</p>
+  </description>
+  <launchable type="desktop-id">io.github.rosenk.ClaudeDesktop.desktop</launchable>
+  <url type="homepage">https://claude.ai</url>
+  <url type="bugtracker">https://github.com/rosenk/claude-desktop-flatpack/issues</url>
+  <content_rating type="oars-1.1" />
+</component>
