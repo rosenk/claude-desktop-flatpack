@@ -115,11 +115,15 @@ fingerprint за това хранилище е:
 ## Sandbox и ограничения
 
 - Използва Freedesktop Platform **25.08**, native Wayland или X11 при липса на Wayland,
-  мрежа, звук, GPU, Secret Service и tray D-Bus достъп. Няма общ достъп до
+  мрежа, звук, GPU, Secret Service, KWallet 6 и tray D-Bus достъп. Няма общ достъп до
   home/host файловата система, host команди или всички устройства.
 - Wayland достъпът е включен в manifest-а; не е нужен локален override.
   По-старите инсталации, които спират с `Failed to initialize Wayland platform`,
   трябва да се обновят с `flatpak update --user io.github.rosenk.ClaudeDesktop`.
+- На KDE Plasma 6 Chromium може да използва KWallet 6. Manifest-ът разрешава
+  достъп до `org.kde.kwalletd6`, без достъп до целия session/system D-Bus.
+  След обновяване затвори напълно Claude и го стартирай отново, за да се
+  приложат новите разрешения. KWallet трябва да е активен на хоста.
 - Chromium се стартира с `--no-sandbox`, защото setuid/nested Chromium
   sandbox не работи в този Flatpak. **Външният Flatpak sandbox остава**, но
   изолацията между Chromium процесите е намалена. Не приемай това като
