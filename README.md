@@ -124,6 +124,10 @@ fingerprint за това хранилище е:
   достъп до `org.kde.kwalletd6`, без достъп до целия session/system D-Bus.
   След обновяване затвори напълно Claude и го стартирай отново, за да се
   приложат новите разрешения. KWallet трябва да е активен на хоста.
+- Chromium получава филтриран system D-Bus достъп до `org.freedesktop.UPower`
+  за информация за захранването. Това осигурява system bus socket в sandbox-а
+  и премахва грешката `Failed to connect to socket /run/dbus/system_bus_socket`,
+  без да разрешава достъп до целия system bus.
 - Chromium се стартира с `--no-sandbox`, защото setuid/nested Chromium
   sandbox не работи в този Flatpak. **Външният Flatpak sandbox остава**, но
   изолацията между Chromium процесите е намалена. Не приемай това като
