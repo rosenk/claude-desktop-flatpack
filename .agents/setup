@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+SECONDS=0
+echo 'Installing missing packaging tools'
+packages=(python3 dpkg gnupg gpgv ca-certificates desktop-file-utils flatpak ostree binutils xz-utils zstd)
+missing=()
+for package in "${packages[@]}"; do
+    if [[ $(dpkg-query -W -f='${Status}' "$package" 2>/dev/null || true) != 'install ok installed' ]]; then
+        missing+=("$package")
+    fi
+done
+
+# Bookworm's default builder (1.2.x) cannot compose AppStream for SDK 25.08.
+builder_missing=true
+if command -v flatpak-builder >/dev/null &&
+    dpkg --compare-versions "$(flatpak-builder --version | sed 's/^flatpak-builder-//')" ge 1.4; then
+    builder_missing=false
+fi
+if (( ${#missing[@]} )) || "$builder_missing"; then
+    if "$builder_missing"; then
+        echo 'deb https://deb.debian.org/debian bookworm-backports main' |
+            sudo tee /etc/apt/sources.list.d/amp-flatpak-backports.list >/dev/null
+    fi
+    sudo apt-get update
+    if (( ${#missing[@]} )); then
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${missing[@]}"
+    fi
+    if "$builder_missing"; then
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends -t bookworm-backports flatpak-builder
+    fi
+fi
+echo "Packaging tools ready (${SECONDS}s elapsed)"
+
+echo 'Preparing native Flatpak runtime and SDK (cached in the orb snapshot)'
+flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+runtime_version=$(python3 -c 'import json; print(json.load(open("packaging/manifest.json"))["runtime-version"])')
+for runtime in org.freedesktop.Platform org.freedesktop.Sdk; do
+    if ! flatpak info --user "$runtime//$runtime_version" >/dev/null 2>&1; then
+        flatpak install --user -y --noninteractive flathub "$runtime//$runtime_version"
+    fi
+done
+flatpak-builder --version
+echo "Orb setup ready (${SECONDS}s total)"

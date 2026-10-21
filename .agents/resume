@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# All tools and Flatpak runtimes live in the snapshot; no services or login needed.
+echo 'Packaging environment restored; no resume work required.'

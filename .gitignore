@@ -6,3 +6,4 @@
 /repos/
 __pycache__/
 *.pyc
+/.amp/portals/*
