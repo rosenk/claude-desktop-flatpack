@@ -17,4 +17,5 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y desktop-file-utils flatpak ostree
           desktop-file-validate packaging/*.desktop
+      - run: bash scripts/install-flatpak.sh
       - run: bash tests/test_publish.sh

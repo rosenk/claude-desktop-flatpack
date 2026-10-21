@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 SECONDS=0
 echo 'Installing missing packaging tools'
-packages=(python3 dpkg gnupg gpgv ca-certificates desktop-file-utils flatpak ostree binutils xz-utils zstd)
+packages=(python3 dpkg gnupg gpgv ca-certificates desktop-file-utils flatpak ostree binutils elfutils xz-utils zstd)
 missing=()
 for package in "${packages[@]}"; do
     if [[ $(dpkg-query -W -f='${Status}' "$package" 2>/dev/null || true) != 'install ok installed' ]]; then
@@ -32,6 +32,8 @@ if (( ${#missing[@]} )) || "$builder_missing"; then
     fi
 fi
 echo "Packaging tools ready (${SECONDS}s elapsed)"
+
+bash scripts/install-flatpak.sh
 
 echo 'Preparing native Flatpak runtime and SDK (cached in the orb snapshot)'
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo

@@ -28,6 +28,12 @@ GitHub Actions проверява APT хранилището на Anthropic на
 build/sign/deploy не се записва като публикувана версия; следващата cron
 проверка опитва отново. Concurrency предотвратява застъпващи се deployments.
 
+Една версия на Claude може да се публикува повторно с променена Flatpak
+опаковка: push към `main` с промени в `packaging/`, `scripts/` или build
+workflow-а принуждава rebuild. Ръчното `force=true` прави същото. Cron
+сравнява версията, URL и checksum за всяка архитектура с публикуваните данни,
+така че промяна на upstream пакета без нов номер също изисква публикуване.
+
 Използва се GitHub Pages, а не Git branch за големите бинарни файлове.
 Публикува се само текущото състояние на repo-то — без история и static deltas,
 с проверка за размер под 950 MB, за да остане под Pages лимита от 1 GB.
@@ -154,7 +160,17 @@ fingerprint за това хранилище е:
 Нужни са Linux, Python 3, `dpkg`, `gpg`/`gpgv`, Flatpak и **flatpak-builder
 1.4+** (старите 1.2.x не могат да compose-нат AppStream с SDK 25.08).
 
+CI и orb setup използват **Flatpak 1.19.2 (prerelease)** от официалния source
+архив с фиксиран SHA-256. Стабилната 1.18.4 още съдържа
+[бъг в pruning-а](https://github.com/flatpak/flatpak/commit/e12088103aeb8f2b3c45d62b000e2a4051d6a1de),
+който при хеш-колизия във вътрешната таблица може да изтрие използван файл.
+1.19.2 включва поправката; използва се стандартният `flatpak build-update-repo
+--prune`, без обходно почистване. На Debian/Ubuntu инсталирай същия инструмент
+със скрипта по-долу (изисква `sudo`; без привилегирован system helper, за
+пакетиране и per-user работа, не за подмяна на Flatpak на desktop хост).
+
 ```bash
+bash scripts/install-flatpak.sh
 python3 -m unittest discover -s tests -v
 bash tests/test_publish.sh
 bash -n scripts/publish.sh

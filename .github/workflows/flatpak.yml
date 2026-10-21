@@ -74,6 +74,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y flatpak flatpak-builder
+          bash scripts/install-flatpak.sh
           # Ubuntu 24.04 restricts unprivileged user namespaces by default.
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
           flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
@@ -123,6 +124,8 @@ jobs:
         with:
           name: upstream
           path: generated/
+      - name: Install Flatpak with the upstream pruning fix
+        run: bash scripts/install-flatpak.sh
       - name: Merge and sign repository
         env:
           SIGNING_KEY: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
