@@ -10,12 +10,12 @@
     "--share=network",
     "--socket=wayland",
     "--socket=fallback-x11",
-    "--socket=pulseaudio",
     "--device=dri",
-    "--system-talk-name=org.freedesktop.UPower",
+    "--socket=pulseaudio",
+    "--talk-name=org.freedesktop.Notifications",
+    "--talk-name=org.kde.StatusNotifierWatcher",
     "--talk-name=org.freedesktop.secrets",
-    "--talk-name=org.kde.kwalletd6",
-    "--talk-name=org.kde.StatusNotifierWatcher"
+    "--unset-env=ELECTRON_RUN_AS_NODE"
   ],
   "modules": [
     {
