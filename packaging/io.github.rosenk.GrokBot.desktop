@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Grok Bot
+Comment=Unofficial Flatpak of the Grok Bot desktop agent
+Exec=grok-bot -- %U
+Icon=io.github.rosenk.GrokBot
+Type=Application
+StartupNotify=true
+StartupWMClass=grok-bot
+Categories=Office;
+MimeType=x-scheme-handler/grokbot;x-scheme-handler/sand;

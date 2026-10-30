@@ -22,7 +22,7 @@
       "name": "claude-desktop",
       "buildsystem": "simple",
       "build-commands": [
-        "ar x claude.deb",
+        "ar x upstream.deb",
         "mkdir extracted && tar -xf data.tar.* -C extracted",
         "mkdir -p /app/lib /app/bin /app/share/applications /app/share/metainfo",
         "cp -a extracted/usr/lib/claude-desktop /app/lib/",
@@ -32,7 +32,20 @@
         "install -m644 io.github.rosenk.ClaudeDesktop.metainfo.xml /app/share/metainfo/",
         "for size in 16 32 48 128 256; do install -Dm644 extracted/usr/share/icons/hicolor/${size}x${size}/apps/claude-desktop.png /app/share/icons/hicolor/${size}x${size}/apps/io.github.rosenk.ClaudeDesktop.png; done"
       ],
-      "sources": []
+      "sources": [
+        {
+          "type": "file",
+          "path": "claude-desktop"
+        },
+        {
+          "type": "file",
+          "path": "io.github.rosenk.ClaudeDesktop.desktop"
+        },
+        {
+          "type": "file",
+          "path": "io.github.rosenk.ClaudeDesktop.metainfo.xml"
+        }
+      ]
     }
   ]
 }

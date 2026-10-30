@@ -37,7 +37,7 @@ bash scripts/install-flatpak.sh
 
 echo 'Preparing native Flatpak runtime and SDK (cached in the orb snapshot)'
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-runtime_version=$(python3 -c 'import json; print(json.load(open("packaging/manifest.json"))["runtime-version"])')
+runtime_version=$(python3 -c 'import json; print(json.load(open("packaging/io.github.rosenk.ClaudeDesktop.json"))["runtime-version"])')
 for runtime in org.freedesktop.Platform org.freedesktop.Sdk; do
     if ! flatpak info --user "$runtime//$runtime_version" >/dev/null 2>&1; then
         flatpak install --user -y --noninteractive flathub "$runtime//$runtime_version"

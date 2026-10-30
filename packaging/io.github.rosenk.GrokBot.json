@@ -1,0 +1,51 @@
+{
+  "app-id": "io.github.rosenk.GrokBot",
+  "runtime": "org.freedesktop.Platform",
+  "runtime-version": "25.08",
+  "sdk": "org.freedesktop.Sdk",
+  "command": "grok-bot",
+  "separate-locales": false,
+  "finish-args": [
+    "--share=ipc",
+    "--share=network",
+    "--socket=wayland",
+    "--socket=fallback-x11",
+    "--socket=pulseaudio",
+    "--device=dri",
+    "--system-talk-name=org.freedesktop.UPower",
+    "--talk-name=org.freedesktop.secrets",
+    "--talk-name=org.kde.kwalletd6",
+    "--talk-name=org.kde.StatusNotifierWatcher"
+  ],
+  "modules": [
+    {
+      "name": "grok-bot",
+      "buildsystem": "simple",
+      "build-commands": [
+        "ar x upstream.deb",
+        "mkdir extracted && tar -xf data.tar.* -C extracted",
+        "mkdir -p /app/lib /app/bin /app/share/applications /app/share/metainfo",
+        "cp -a 'extracted/opt/Grok Bot' /app/lib/grok-bot",
+        "rm /app/lib/grok-bot/chrome-sandbox",
+        "install -m755 grok-bot /app/bin/grok-bot",
+        "install -m644 io.github.rosenk.GrokBot.desktop /app/share/applications/",
+        "install -m644 io.github.rosenk.GrokBot.metainfo.xml /app/share/metainfo/",
+        "for size in 16 24 32 48 64 128 256 512; do install -Dm644 extracted/usr/share/icons/hicolor/${size}x${size}/apps/grok-bot.png /app/share/icons/hicolor/${size}x${size}/apps/io.github.rosenk.GrokBot.png; done"
+      ],
+      "sources": [
+        {
+          "type": "file",
+          "path": "grok-bot"
+        },
+        {
+          "type": "file",
+          "path": "io.github.rosenk.GrokBot.desktop"
+        },
+        {
+          "type": "file",
+          "path": "io.github.rosenk.GrokBot.metainfo.xml"
+        }
+      ]
+    }
+  ]
+}

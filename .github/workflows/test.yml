@@ -12,7 +12,7 @@ jobs:
         with:
           persist-credentials: false
       - run: python3 -m unittest discover -s tests -v
-      - run: bash -n scripts/publish.sh && sh -n packaging/claude-desktop
+      - run: bash -n scripts/publish.sh && sh -n packaging/claude-desktop && sh -n packaging/grok-bot
       - run: |
           sudo apt-get update
           sudo apt-get install -y desktop-file-utils flatpak ostree

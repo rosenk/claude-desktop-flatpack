@@ -1,20 +1,26 @@
-# Claude Desktop — unofficial Flatpak
+# Claude Desktop и Grok Bot — unofficial Flatpaks
 
-Автоматично препакетиране на **официалния Linux `.deb` на Anthropic** във
-Flatpak за **x86_64 и ARM64 (aarch64)**. Не използва Windows инсталатора и не
-променя `app.asar`. Това не е официален пакет и не е свързан с Anthropic.
+Автоматично препакетиране на **официалните Linux `.deb` пакети** във
+Flatpak за **x86_64 и ARM64 (aarch64)**:
 
-Официалният Linux клиент е beta и се разпространява като `.deb` и през APT:
-[Claude Desktop on Linux](https://code.claude.com/docs/en/desktop-linux).
+| Приложение | Flatpak ID | Upstream APT repo | Ключ (fingerprint) |
+| --- | --- | --- | --- |
+| Claude Desktop (Anthropic) | `io.github.rosenk.ClaudeDesktop` | [Claude Desktop on Linux](https://code.claude.com/docs/en/desktop-linux) | `31DD DE24 DDFA B679 F42D 7BD2 BAA9 29FF 1A7E CACE` |
+| [Grok Bot](https://x.ai/bot) (SpaceXAI/Cursor) | `io.github.rosenk.GrokBot` | [Grok Bot deployment](https://cursor.com/docs/grok-bot/deployment#linux-package-updates) | `380F F4BC DC34 A4BD 92A3 5653 42A1 772E 62E4 92D6` |
+
+Не се използват Windows/macOS инсталатори и не се променя `app.asar`. Това не
+са официални пакети и проектът не е свързан с Anthropic, SpaceXAI или Cursor.
 
 ## Как работи
 
-GitHub Actions проверява APT хранилището на Anthropic на всеки 6 часа
+GitHub Actions проверява двете APT хранилища на всеки 6 часа
 (`00:23`, `06:23`, `12:23`, `18:23` UTC; GitHub може да забавя cron задачите).
 
-1. Проверява фиксирания fingerprint на ключа на Anthropic, подписа на
-   `InRelease`, датата и `Valid-Until`, както и SHA-256 и размера на двата
-   `Packages` индекса.
+1. За всяко приложение проверява фиксирания fingerprint на ключа на
+   производителя, подписа на `InRelease`, датата и `Valid-Until` (ако има),
+   както и SHA-256 и размера на двата `Packages` индекса. Release файлът на
+   Cursor няма `Valid-Until`, затова версия, по-стара от публикуваната, се
+   отказва (защита от replay на стари метаданни).
 2. Избира най-новия пакет за всяка архитектура с Debian version ordering,
    а не с текстово сортиране. Генерира manifests с конкретен URL и SHA-256.
 3. Сравнява версията, URL и checksum с **действително публикувания**
@@ -28,7 +34,7 @@ GitHub Actions проверява APT хранилището на Anthropic на
 build/sign/deploy не се записва като публикувана версия; следващата cron
 проверка опитва отново. Concurrency предотвратява застъпващи се deployments.
 
-Една версия на Claude може да се публикува повторно с променена Flatpak
+Една версия на приложение може да се публикува повторно с променена Flatpak
 опаковка: push към `main` с промени в `packaging/`, `scripts/` или build
 workflow-а принуждава rebuild. Ръчното `force=true` прави същото. Cron
 сравнява версията, URL и checksum за всяка архитектура с публикуваните данни,
@@ -91,20 +97,22 @@ repo. Следи failed run известията и при нужда актив
 
 ## Инсталиране след първото успешно публикуване
 
-Инсталиране от подписаното GitHub Pages repo:
+Двете приложения са в едно и също подписано GitHub Pages repo (remote-ът
+запазва името `claude-desktop` заради съществуващите инсталации):
 
 ```bash
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak remote-add --user --if-not-exists claude-desktop \
   https://rosenk.github.io/claude-desktop-flatpack/claude-desktop.flatpakrepo
 flatpak install --user claude-desktop io.github.rosenk.ClaudeDesktop
-flatpak run io.github.rosenk.ClaudeDesktop
+flatpak install --user claude-desktop io.github.rosenk.GrokBot
+flatpak run io.github.rosenk.GrokBot
 ```
 
 Flatpak избира архитектурата автоматично. Обновяване:
 
 ```bash
-flatpak update --user io.github.rosenk.ClaudeDesktop
+flatpak update --user io.github.rosenk.ClaudeDesktop io.github.rosenk.GrokBot
 ```
 
 Не се използва `--no-gpg-verify`: `.flatpakrepo` съдържа публичния signing key.
@@ -119,6 +127,19 @@ fingerprint за това хранилище е:
 ```
 
 ## Sandbox и ограничения
+
+Двете приложения имат еднакви Flatpak разрешения и `--no-sandbox` wrapper.
+Grok Bot е клиент: ботовете работят на облачния компютър на Cursor, затова
+не му трябва достъп до host файлове. Конфигурацията му е в
+`~/.var/app/io.github.rosenk.GrokBot/`. Твърде старите версии Cursor блокира
+с **Update required**, така че обновявай редовно. Бележките по-долу за
+Code/MCP/Cowork важат за Claude. CI проверява Grok Bot само с `ldd`
+(всички native библиотеки са налични в runtime-а): приложението няма режим
+`--version` и без дисплей не може да се провери стартирането му.
+
+Двете приложения заедно са около 360 MB на архитектура, т.е. ~720 MB от
+лимита от 950 MB. Ако upstream пакетите пораснат значително, публикуването
+ще спре на проверката за размер.
 
 - Използва Freedesktop Platform **25.08**, native Wayland или X11 при липса на Wayland,
   мрежа, звук, GPU, Secret Service, KWallet 6 и tray D-Bus достъп. Няма общ достъп до
@@ -180,12 +201,13 @@ python3 scripts/upstream.py --force
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak install --user -y flathub org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08
 flatpak-builder --user --force-clean --disable-rofiles-fuse --repo=repo \
-  --default-branch=stable build generated/$(flatpak --default-arch).json
+  --default-branch=stable build generated/io.github.rosenk.ClaudeDesktop-$(flatpak --default-arch).json
 flatpak build --runtime build /app/bin/claude-desktop --version
+# Grok Bot: generated/io.github.rosenk.GrokBot-<arch>.json и /app/bin/grok-bot
 ```
 
 `scripts/publish.sh` подготвя само локалния `dist/`: очаква двата build repos
 в `repos/x86_64` и `repos/aarch64`, `generated/versions.json`, както и
 `GNUPGHOME`, `FLATPAK_GPG_KEY_ID` и `REPO_URL`. Самият deployment се прави
 само от Actions. При промяна на packaging файловете push към `main` прави
-rebuild дори версията на Anthropic да е същата.
+rebuild дори upstream версиите да са същите.

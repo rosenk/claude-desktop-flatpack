@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.rosenk.GrokBot</id>
+  <name>Grok Bot (unofficial Flatpak)</name>
+  <summary>Give tasks to AI teammates in the official Grok Bot desktop app</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LicenseRef-proprietary</project_license>
+  <description>
+    <p>The official Grok Bot Linux binary by SpaceXAI and Cursor, repackaged as an unofficial Flatpak. A Cursor account with Grok Bot access is required.</p>
+  </description>
+  <launchable type="desktop-id">io.github.rosenk.GrokBot.desktop</launchable>
+  <url type="homepage">https://x.ai/bot</url>
+  <url type="bugtracker">https://github.com/rosenk/claude-desktop-flatpack/issues</url>
+  <content_rating type="oars-1.1" />
+</component>
