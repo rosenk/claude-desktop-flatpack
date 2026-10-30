@@ -97,6 +97,9 @@ class UpstreamTests(unittest.TestCase):
                     self.assertTrue(local)
                     for item in local:
                         self.assertTrue((output / item["path"]).is_file(), item["path"])
+                    metainfo = next(item for item in local if item["path"].endswith(".metainfo.xml"))
+                    self.assertEqual(metainfo["dest-filename"], f"{app_id}.metainfo.xml")
+                    self.assertIn(f'<release version="{expected["version"]}" />', (output / metainfo["path"]).read_text())
             self.assertEqual(json.loads((output / "versions.json").read_text()), packages)
 
     def test_rebuild_decision_uses_deployed_checksums_and_force(self):

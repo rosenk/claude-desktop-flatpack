@@ -4,12 +4,54 @@
   <name>Claude Desktop (unofficial Flatpak)</name>
   <summary>Chat with Claude in the official Linux desktop app</summary>
   <metadata_license>CC0-1.0</metadata_license>
-  <project_license>LicenseRef-proprietary</project_license>
+  <project_license>LicenseRef-proprietary=https://claude.ai/legal/consumer-terms</project_license>
+  <developer id="io.github.rosenk">
+    <name>rosenk</name>
+  </developer>
   <description>
-    <p>Anthropic's official Claude Desktop Linux binary, repackaged as an unofficial Flatpak. An Anthropic account is required. Sandbox limitations apply to Code, MCP and Cowork.</p>
+    <p>Anthropic's official Claude Desktop Linux binary, repackaged unmodified as an unofficial Flatpak. This package is maintained independently and is not affiliated with Anthropic. An Anthropic account is required.</p>
+    <ul>
+      <li>Chat with Claude from a native desktop window.</li>
+      <li>Use Claude coding workflows from the desktop app.</li>
+      <li>Review changes, terminal output and previews in one app.</li>
+    </ul>
+    <p>Permissions: network, display, GPU, audio, notifications, tray and keyring access. There is no broad home-directory or host-device access, so Code, MCP and Cowork are limited by the sandbox.</p>
   </description>
   <launchable type="desktop-id">io.github.rosenk.ClaudeDesktop.desktop</launchable>
   <url type="homepage">https://claude.ai</url>
+  <url type="help">https://support.claude.com/</url>
   <url type="bugtracker">https://github.com/rosenk/claude-desktop-flatpack/issues</url>
+  <url type="vcs-browser">https://github.com/rosenk/claude-desktop-flatpack</url>
   <content_rating type="oars-1.1" />
+  <categories>
+    <category>Development</category>
+    <category>Office</category>
+    <category>Utility</category>
+  </categories>
+  <keywords>
+    <keyword>ai</keyword>
+    <keyword>assistant</keyword>
+    <keyword>chat</keyword>
+    <keyword>code</keyword>
+    <keyword>coding</keyword>
+    <keyword>claude</keyword>
+  </keywords>
+  <branding>
+    <color type="primary">#d4a27f</color>
+  </branding>
+  <recommends>
+    <display_length compare="ge">800</display_length>
+    <control>keyboard</control>
+    <control>pointing</control>
+  </recommends>
+  <provides>
+    <binary>claude-desktop</binary>
+    <mediatype>x-scheme-handler/claude</mediatype>
+  </provides>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://claude.ai/images/claude_ogimage.png</image>
+      <caption>Claude desktop chat experience</caption>
+    </screenshot>
+  </screenshots>
 </component>

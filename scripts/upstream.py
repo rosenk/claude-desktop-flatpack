@@ -14,6 +14,7 @@ import urllib.request
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path, PurePosixPath
+from xml.sax.saxutils import escape
 
 APPS = {
     "io.github.rosenk.ClaudeDesktop": {
@@ -127,7 +128,16 @@ def generate(packages, output):
         for arch, package in arches.items():
             manifest = json.loads((ROOT / "packaging" / f"{app_id}.json").read_text())
             module = manifest["modules"][0]
-            local = [{**source, "path": os.path.relpath(ROOT / "packaging" / source["path"], output)} for source in module["sources"]]
+            local = []
+            for source in module["sources"]:
+                path = ROOT / "packaging" / source["path"]
+                if path.name.endswith(".metainfo.xml"):
+                    # Software centres show the upstream version from <releases>.
+                    release = f'  <releases>\n    <release version="{escape(package["version"], {chr(34): "&quot;"})}" />\n  </releases>\n</component>'
+                    path = output / f"{app_id}-{arch}.metainfo.xml"
+                    path.write_text((ROOT / "packaging" / source["path"]).read_text().replace("</component>", release))
+                    source = {**source, "dest-filename": PurePosixPath(source["path"]).name}
+                local.append({**source, "path": os.path.relpath(path, output)})
             module["sources"] = [{"type": "file", "url": package["url"], "sha256": package["sha256"], "dest-filename": "upstream.deb"}] + local
             (output / f"{app_id}-{arch}.json").write_text(json.dumps(manifest, indent=2) + "\n")
 
