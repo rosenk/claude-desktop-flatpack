@@ -128,7 +128,7 @@ fingerprint за това хранилище е:
 
 ## Sandbox и ограничения
 
-Двете приложения имат еднакви Flatpak разрешения и `--no-sandbox` wrapper.
+Claude Desktop пуска Chromium през zypak, а Grok Bot все още е с `--no-sandbox` wrapper.
 Grok Bot е клиент: ботовете работят на облачния компютър на Cursor, затова
 не му трябва достъп до host файлове. Конфигурацията му е в
 `~/.var/app/io.github.rosenk.GrokBot/`. Твърде старите версии Cursor блокира
@@ -151,10 +151,9 @@ Code/MCP/Cowork важат за Claude. CI проверява Grok Bot само 
   трябва да се обновят с `flatpak update --user io.github.rosenk.ClaudeDesktop`.
 - `ELECTRON_RUN_AS_NODE` се премахва от средата на sandbox-а, за да се стартира
   винаги GUI приложението, а не чист Node.
-- Chromium се стартира с `--no-sandbox`, защото setuid/nested Chromium
-  sandbox не работи в този Flatpak. **Външният Flatpak sandbox остава**, но
-  изолацията между Chromium процесите е намалена. Не приемай това като
-  еквивалентна сигурност на официалната `.deb` инсталация.
+- Chromium се стартира през `zypak-wrapper` от `org.electronjs.Electron2.BaseApp`.
+  zypak пренасочва setuid sandbox-а на Chromium към Flatpak sandbox-а, така че
+  renderer процесите остават изолирани без `chrome-sandbox` и без `--no-sandbox`.
 - Конфигурацията е отделна: обичайно
   `~/.var/app/io.github.rosenk.ClaudeDesktop/config/Claude/`.
   Съществуващата `.deb` конфигурация не се мигрира автоматично.
@@ -195,10 +194,11 @@ sh -n packaging/claude-desktop
 desktop-file-validate packaging/*.desktop
 python3 scripts/upstream.py --force
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak install --user -y flathub org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08
+flatpak install --user -y flathub org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08 \
+  org.electronjs.Electron2.BaseApp//25.08
 flatpak-builder --user --force-clean --disable-rofiles-fuse --repo=repo \
   --default-branch=stable build generated/io.github.rosenk.ClaudeDesktop-$(flatpak --default-arch).json
-flatpak build --runtime build /app/bin/claude-desktop --version
+flatpak build --runtime build /app/lib/claude-desktop/claude-desktop --no-sandbox --version
 # Grok Bot: generated/io.github.rosenk.GrokBot-<arch>.json и /app/bin/grok-bot
 ```
 

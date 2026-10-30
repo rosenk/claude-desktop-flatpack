@@ -43,5 +43,9 @@ for runtime in org.freedesktop.Platform org.freedesktop.Sdk; do
         flatpak install --user -y --noninteractive flathub "$runtime//$runtime_version"
     fi
 done
+base=$(python3 -c 'import json; m = json.load(open("packaging/io.github.rosenk.ClaudeDesktop.json")); print(m["base"] + "//" + m["base-version"])')
+if ! flatpak info --user "$base" >/dev/null 2>&1; then
+    flatpak install --user -y --noninteractive flathub "$base"
+fi
 flatpak-builder --version
 echo "Orb setup ready (${SECONDS}s total)"

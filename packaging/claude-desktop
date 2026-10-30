@@ -1,6 +1,7 @@
 #!/bin/sh
-# Chromium's nested sandbox cannot use its setuid helper inside Flatpak.
-# The application remains contained by Flatpak's outer sandbox.
+# zypak (from org.electronjs.Electron2.BaseApp) redirects Chromium's setuid
+# sandbox onto the Flatpak sandbox, so the renderers stay sandboxed without
+# chrome-sandbox or --no-sandbox.
 unset ELECTRON_RUN_AS_NODE
 
 # Chromium writes the tray icon and media cover art to files in $TMPDIR and
@@ -8,4 +9,4 @@ unset ELECTRON_RUN_AS_NODE
 # can't read them. The per-app runtime dir has the same path on both sides.
 export TMPDIR="${XDG_RUNTIME_DIR}/app/${FLATPAK_ID}"
 
-exec /app/lib/claude-desktop/claude-desktop --no-sandbox --ozone-platform-hint=auto "$@"
+exec zypak-wrapper /app/lib/claude-desktop/claude-desktop --ozone-platform-hint=auto "$@"

@@ -78,7 +78,8 @@ jobs:
           # Ubuntu 24.04 restricts unprivileged user namespaces by default.
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
           flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-          flatpak install --user -y --noninteractive flathub org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08
+          flatpak install --user -y --noninteractive flathub org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08 \
+            org.electronjs.Electron2.BaseApp//25.08
       - name: Build pinned official packages
         run: |
           for manifest in generated/*-${{ matrix.arch }}.json; do
@@ -92,7 +93,9 @@ jobs:
             ' sh "$command"
             # Grok Bot has no --version mode; it opens a window, so only ldd checks it.
             if [[ $command == claude-desktop ]]; then
-              flatpak build --runtime build "/app/bin/$command" --version
+              # zypak needs a real Flatpak instance, so check the binary itself.
+              flatpak build --runtime build test -x /app/bin/zypak-wrapper
+              flatpak build --runtime build "/app/lib/$command/$command" --no-sandbox --version
             fi
           done
           ostree --repo=repo fsck
